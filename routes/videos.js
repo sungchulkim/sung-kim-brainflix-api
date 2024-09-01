@@ -24,7 +24,7 @@ function writeData(data) {
     }
 }
 
-
+// GET /videos
 router.get('/', (req, res) => {
     const data = readData();
     const simplifiedVideos = data.videos.map((video, index) => ({
@@ -37,6 +37,7 @@ router.get('/', (req, res) => {
 });
 
 
+// GET /videos/id
 router.get('/:id', (req, res) => {
     const data = readData();
     const video = data.videos.find(v => v.id === req.params.id);
@@ -48,6 +49,7 @@ router.get('/:id', (req, res) => {
 });
 
 
+// POST /videos
 router.post('/', (req, res) => {
     const { title, description } = req.body;
     if (!title || !description) {
@@ -60,17 +62,14 @@ router.post('/', (req, res) => {
     const newVideo = {
         id: uuidv4(),
         title,
-        author: 'Anonymous User',
-        thumbnailUrl: `/public/images/images${newVideoIndex}.jpg`,
-        // thumbnailUrl: '/public/images/default-image.jpg',
+        channel: "Anonymous User",
+        image: `image${newVideoIndex}.jpg`,
         description,
-        views: '0',
-        likes: '0',
-        duration: '0:00',
-        videoUrl: 'http://localhost:8080/stream',
-        uploadTime: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-        subscriber: '0 Subscribers',
-        isLive: false,
+        views: "0",
+        likes: "0",
+        duration: "0:00",
+        video: "https://unit-3-project-api-0a5620414506.herokuapp.com/stream",
+        timestamp: Date.now(),
         comments: []
     };
 
