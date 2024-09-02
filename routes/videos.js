@@ -109,28 +109,23 @@ router.post('/:id/comments', async (req, res) => {
 
 
 // DELETE /videos/:videoId/comments/:commentId
-router.delete('/videos/:videoId/comments/:commentId', async (req, res) => {
+router.delete('/:videoId/comments/:commentId', (req, res) => {
     try {
         const { videoId, commentId } = req.params;
 
-        const video = await Video.findById(videoId);
+        const data = readData();
+        const video = data.videos.find(v => v.id === videoId);
         if (!video) {
             return res.status(404).json({ error: 'Video not found' });
         }
 
-        const comment = await Comment.findById(commentId);
-        if (!comment) {
+        const commentIndex = video.comments.findIndex(c => c.id === commentId);
+        if (commentIndex === -1) {
             return res.status(404).json({ error: 'Comment not found' });
         }
 
-        if (comment.video.toString() !== videoId) {
-            return res.status(403).json({ error: 'Comment does not belong to this video' });
-        }
-
-        video.comments = video.comments.filter(id => id.toString() !== commentId);
-        await video.save();
-
-        await Comment.findByIdAndDelete(commentId);
+        video.comments.splice(commentIndex, 1);
+        writeData(data);        
 
         res.status(200).json({ message: 'Comment deleted successfully' });
     } catch (error) {
