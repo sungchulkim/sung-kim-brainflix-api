@@ -41,6 +41,7 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
     const data = readData();
     const video = data.videos.find(v => v.id === req.params.id);
+
     if (video) {
         res.json(video);
     } else {
@@ -77,6 +78,65 @@ router.post('/', (req, res) => {
     writeData(data);
 
     res.status(201).json(newVideo);
+});
+
+
+// POST /videos/:id/comments
+router.post('/:id/comments', async (req, res) => {
+    const data = readData();
+    const { id } = req.params;
+    const { comment } = req.body;
+    const name = 'Anonymous';
+
+    const video = data.videos.find(v => v.id === id);
+    if (!video) {
+        return res.status(404).json({ error: 'Video not found' });
+    }
+
+    const newComment = {
+        id: uuidv4(),
+        name,
+        comment,
+        likes: 0,
+        timestamp: Date.now()
+    };
+
+    video.comments.push(newComment);
+    writeData(data);
+
+    res.status(201).json(newComment);
+});
+
+
+// DELETE /videos/:videoId/comments/:commentId
+router.delete('/videos/:videoId/comments/:commentId', async (req, res) => {
+    try {
+        const { videoId, commentId } = req.params;
+
+        const video = await Video.findById(videoId);
+        if (!video) {
+            return res.status(404).json({ error: 'Video not found' });
+        }
+
+        const comment = await Comment.findById(commentId);
+        if (!comment) {
+            return res.status(404).json({ error: 'Comment not found' });
+        }
+
+        if (comment.video.toString() !== videoId) {
+            return res.status(403).json({ error: 'Comment does not belong to this video' });
+        }
+
+        video.comments = video.comments.filter(id => id.toString() !== commentId);
+        await video.save();
+
+        await Comment.findByIdAndDelete(commentId);
+
+        res.status(200).json({ message: 'Comment deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 export default router;
